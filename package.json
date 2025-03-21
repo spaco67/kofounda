@@ -1,5 +1,5 @@
 {
-  "name": "bolt",
+  "name": "kofounda",
   "description": "An AI Agent",
   "private": true,
   "license": "MIT",
@@ -7,8 +7,8 @@
   "type": "module",
   "version": "0.0.7",
   "author": {
-    "name": "bolt.diy team",
-    "email": "maintainers@bolt.diy"
+    "name": "Kofounda team",
+    "email": "maintainers@kofounda.com"
   },
   "scripts": {
     "deploy": "npm run build && wrangler pages deploy",

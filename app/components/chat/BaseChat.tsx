@@ -71,6 +71,7 @@ interface BaseChatProps {
   clearAlert?: () => void;
   data?: JSONValue[] | undefined;
   actionRunner?: ActionRunner;
+  textareaHeight?: number;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -107,6 +108,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       clearAlert,
       data,
       actionRunner,
+      textareaHeight,
     },
     ref,
   ) => {
@@ -117,8 +119,27 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
     const [transcript, setTranscript] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState(() => {
+      // Load saved language preference from localStorage if available
+      if (typeof window !== 'undefined') {
+        const savedLanguage = localStorage.getItem('kofounda_speech_language');
+        return savedLanguage || 'en-US';
+      }
+      return 'en-US';
+    });
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
+
+    // Nigerian languages supported by Web Speech API
+    const nigerianLanguages = [
+      { code: 'en-US', name: 'English (US)' },
+      { code: 'en-NG', name: 'English (Nigeria)' },
+      { code: 'ha-Latn-NG', name: 'Hausa' },
+      { code: 'ig-NG', name: 'Igbo' },
+      { code: 'pcm-NG', name: 'Nigerian Pidgin' },
+      { code: 'yo-NG', name: 'Yoruba' },
+    ];
+
     useEffect(() => {
       if (data) {
         const progressList = data.filter(
@@ -127,6 +148,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         setProgressAnnotations(progressList);
       }
     }, [data]);
+
     useEffect(() => {
       console.log(transcript);
     }, [transcript]);
@@ -141,6 +163,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
+        recognition.lang = selectedLanguage; // Set the selected language
 
         recognition.onresult = (event) => {
           const transcript = Array.from(event.results)
@@ -160,12 +183,38 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
         recognition.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
+
+          if (event.error === 'language-not-supported' || event.error === 'not-allowed') {
+            const langName = nigerianLanguages.find((l) => l.code === selectedLanguage)?.name || selectedLanguage;
+            toast.error(
+              `Speech recognition failed: ${langName} might not be supported by your browser. Try another language.`,
+            );
+            // Fall back to English
+            setSelectedLanguage('en-US');
+          }
+
           setIsListening(false);
+        };
+
+        // Add handlers for more speech events
+        recognition.onstart = () => {
+          console.log('Speech recognition started');
+          setIsListening(true);
+        };
+
+        recognition.onend = () => {
+          console.log('Speech recognition ended');
+          setIsListening(false);
+        };
+
+        recognition.onnomatch = () => {
+          console.log('No speech detected');
+          toast.info('No speech detected. Please try again.');
         };
 
         setRecognition(recognition);
       }
-    }, []);
+    }, [selectedLanguage]); // Re-initialize when language changes
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
@@ -222,8 +271,29 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
     const startListening = () => {
       if (recognition) {
-        recognition.start();
-        setIsListening(true);
+        try {
+          recognition.lang = selectedLanguage; // Update language before starting
+          recognition.start();
+          setIsListening(true);
+
+          // Notify user which language is being used
+          const langName = nigerianLanguages.find((l) => l.code === selectedLanguage)?.name || selectedLanguage;
+          toast.info(`Listening in ${langName}. Speak now...`, {
+            position: 'bottom-center',
+            autoClose: 3000,
+          });
+
+          // Display browser supported languages if available
+          if (window.navigator.languages && window.navigator.languages.length > 0) {
+            console.log('Browser supported languages:', window.navigator.languages);
+          }
+        } catch (error) {
+          console.error('Failed to start speech recognition:', error);
+          toast.error('Could not start speech recognition. Your browser might not support this feature.');
+          setIsListening(false);
+        }
+      } else {
+        toast.error('Speech recognition is not supported in your browser.');
       }
     };
 
@@ -305,6 +375,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         }
       }
     };
+
+    // Save language preference when it changes
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('kofounda_speech_language', selectedLanguage);
+      }
+    }, [selectedLanguage]);
 
     const baseChat = (
       <div
@@ -452,42 +529,19 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     )}
                   >
                     <textarea
-                      ref={textareaRef}
+                      ref={textareaRef as any}
                       className={classNames(
-                        'w-full pl-4 pt-4 pr-16 outline-none resize-none text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary bg-transparent text-sm',
-                        'transition-all duration-200',
-                        'hover:border-bolt-elements-focus',
+                        'w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-3 pr-10 outline-none placeholder:text-kofounda-elements-textTertiary',
+                        {
+                          'placeholder-animate': enhancingPrompt,
+                          'border-kofounda-elements-borderColor focus:border-kofounda-elements-borderColorActive': true,
+                          'text-kofounda-elements-item-contentAccent border-l-2 pl-2': isListening,
+                        },
                       )}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.style.border = '2px solid #1488fc';
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.style.border = '2px solid #1488fc';
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
-
-                        const files = Array.from(e.dataTransfer.files);
-                        files.forEach((file) => {
-                          if (file.type.startsWith('image/')) {
-                            const reader = new FileReader();
-
-                            reader.onload = (e) => {
-                              const base64Image = e.target?.result as string;
-                              setUploadedFiles?.([...uploadedFiles, file]);
-                              setImageDataList?.([...imageDataList, base64Image]);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        });
-                      }}
+                      value={input}
+                      placeholder={enhancingPrompt ? 'Enhancing prompt...' : 'Send a message...'}
+                      disabled={isStreaming || enhancingPrompt}
+                      onChange={handleInputChange}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
                           if (event.shiftKey) {
@@ -509,17 +563,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           handleSendMessage?.(event);
                         }
                       }}
-                      value={input}
-                      onChange={(event) => {
-                        handleInputChange?.(event);
-                      }}
                       onPaste={handlePaste}
                       style={{
-                        minHeight: TEXTAREA_MIN_HEIGHT,
-                        maxHeight: TEXTAREA_MAX_HEIGHT,
+                        height: Math.min(
+                          Math.max(textareaHeight || TEXTAREA_MIN_HEIGHT, TEXTAREA_MIN_HEIGHT),
+                          TEXTAREA_MAX_HEIGHT,
+                        ),
                       }}
-                      placeholder="How can Bolt help you today?"
-                      translate="no"
                     />
                     <ClientOnly>
                       {() => (
@@ -566,6 +616,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           onStart={startListening}
                           onStop={stopListening}
                           disabled={isStreaming}
+                          selectedLanguage={selectedLanguage}
+                          onLanguageChange={(lang) => setSelectedLanguage(lang)}
                         />
                         {chatStarted && <ClientOnly>{() => <ExportChatButton exportChat={exportChat} />}</ClientOnly>}
                         <IconButton

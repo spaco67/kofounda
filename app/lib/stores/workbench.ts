@@ -97,6 +97,12 @@ export class WorkbenchStore {
   get boltTerminal() {
     return this.#terminalStore.boltTerminal;
   }
+
+  // Add alias for Kofounda terminal
+  get kofoundaTerminal() {
+    return this.#terminalStore.boltTerminal;
+  }
+
   get alert() {
     return this.actionAlert;
   }
@@ -111,7 +117,9 @@ export class WorkbenchStore {
   attachTerminal(terminal: ITerminal) {
     this.#terminalStore.attachTerminal(terminal);
   }
-  attachBoltTerminal(terminal: ITerminal) {
+
+  // Add alias for attach Kofounda terminal
+  attachKofoundaTerminal(terminal: ITerminal) {
     this.#terminalStore.attachBoltTerminal(terminal);
   }
 
