@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export const useAuthModals = () => {
@@ -9,7 +9,7 @@ export const useAuthModals = () => {
 
   const GUEST_TOKEN_LIMIT = 150000;
 
-  const handleTokenUsage = async (tokensUsed: number) => {
+  const handleTokenUsage = useCallback(async (tokensUsed: number) => {
     if (!user) {
       // For guest users, check if they've reached the limit
       if (tokensUsed >= GUEST_TOKEN_LIMIT) {
@@ -21,19 +21,19 @@ export const useAuthModals = () => {
     // For registered users, update their token usage
     await updateUserTokens(tokensUsed);
     return true;
-  };
+  }, [user, updateUserTokens]);
 
-  const handleSignUp = () => {
+  const handleSignUp = useCallback(() => {
     setShowTokenLimitModal(false);
     setAuthMode('signup');
     setShowAuthModal(true);
-  };
+  }, []);
 
-  const handleSignIn = () => {
+  const handleSignIn = useCallback(() => {
     setShowTokenLimitModal(false);
     setAuthMode('signin');
     setShowAuthModal(true);
-  };
+  }, []);
 
   return {
     showAuthModal,

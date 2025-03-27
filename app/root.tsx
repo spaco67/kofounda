@@ -129,15 +129,6 @@ function AppContent({ theme }: { theme: string }) {
     console.log('Auth modal state:', { showAuthModal, authMode });
   }, [showAuthModal, authMode]);
 
-  // Open auth modal by default for testing
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('Setting showAuthModal to true for testing');
-      setShowAuthModal(true);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [setShowAuthModal]);
-
   return (
     <html lang="en">
       <head>
@@ -158,7 +149,7 @@ function AppContent({ theme }: { theme: string }) {
           isOpen={showTokenLimitModal}
           onClose={() => setShowTokenLimitModal(false)}
           onSignUp={handleSignUp}
-          tokensUsed={0} // This will be updated when we integrate with the chat component
+          tokensUsed={0}
         />
       </body>
     </html>

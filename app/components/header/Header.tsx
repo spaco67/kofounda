@@ -7,23 +7,22 @@ import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { useAuth } from '~/lib/context/AuthContext';
 import { useAuthModals } from '~/lib/hooks/useAuthModals';
 import { Link } from '@remix-run/react';
+import { useCallback } from 'react';
 
 export const Header = () => {
   const chat = useStore(chatStore);
   const { user, logout } = useAuth();
   const { setShowAuthModal, setAuthMode } = useAuthModals();
 
-  const handleSignIn = () => {
-    console.log('Sign In clicked');
+  const handleSignIn = useCallback(() => {
     setAuthMode('signin');
     setShowAuthModal(true);
-  };
+  }, [setAuthMode, setShowAuthModal]);
 
-  const handleSignUp = () => {
-    console.log('Sign Up clicked');
+  const handleSignUp = useCallback(() => {
     setAuthMode('signup');
     setShowAuthModal(true);
-  };
+  }, [setAuthMode, setShowAuthModal]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-[#0A0A0A]/80">
@@ -50,13 +49,13 @@ export const Header = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSignIn}
-                className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
                 Sign In
               </button>
               <button
                 onClick={handleSignUp}
-                className="rounded-lg bg-purple-500 px-3 py-1.5 text-sm text-white hover:bg-purple-600"
+                className="rounded-lg bg-purple-500 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700"
               >
                 Sign Up
               </button>
