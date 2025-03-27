@@ -8,8 +8,8 @@ export type TabType =
   | 'notifications'
   | 'features'
   | 'data'
-  | 'cloud-providers'
-  | 'local-providers'
+  | 'kofounda-academy'
+  | 'referral'
   | 'service-status'
   | 'connection'
   | 'debug'
@@ -72,8 +72,8 @@ export const TAB_LABELS: Record<TabType, string> = {
   notifications: 'Notifications',
   features: 'Features',
   data: 'Data Management',
-  'cloud-providers': 'Cloud Providers',
-  'local-providers': 'Local Providers',
+  'kofounda-academy': 'Kofounda Academy',
+  referral: 'Referral',
   'service-status': 'Service Status',
   connection: 'Connections',
   debug: 'Debug',

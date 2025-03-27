@@ -84,11 +84,20 @@ const TAB_DESCRIPTIONS: Record<TabType, string> = {
 };
 
 // Beta status for experimental features
-const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 'local-providers']);
+const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update']);
+
+// Coming Soon status for new features
+const COMING_SOON_TABS = new Set<TabType>(['kofounda-academy', 'referral']);
 
 const BetaLabel = () => (
   <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20">
     <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400">BETA</span>
+  </div>
+);
+
+const ComingSoonLabel = () => (
+  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-blue-500/10 dark:bg-blue-500/20">
+    <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">Coming Soon</span>
   </div>
 );
 
@@ -537,6 +546,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                                 className="h-full relative"
                               >
                                 {BETA_TABS.has(tab.id) && <BetaLabel />}
+                                {COMING_SOON_TABS.has(tab.id) && <ComingSoonLabel />}
                               </TabTile>
                             </motion.div>
                           ))}

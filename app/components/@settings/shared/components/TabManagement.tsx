@@ -32,8 +32,8 @@ const TAB_ICONS: Record<TabType, string> = {
 const DEFAULT_USER_TABS: TabType[] = [
   'features',
   'data',
-  'cloud-providers',
-  'local-providers',
+  'kofounda-academy',
+  'referral',
   'connection',
   'notifications',
   'event-logs',
@@ -46,11 +46,19 @@ const OPTIONAL_USER_TABS: TabType[] = ['profile', 'settings', 'task-manager', 's
 const ALL_USER_TABS = [...DEFAULT_USER_TABS, ...OPTIONAL_USER_TABS];
 
 // Define which tabs are beta
-const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 'local-providers']);
+const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update']);
+
+// Define which tabs are coming soon
+const COMING_SOON_TABS = new Set<TabType>(['kofounda-academy', 'referral']);
 
 // Beta label component
 const BetaLabel = () => (
   <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-purple-500/10 text-purple-500 font-medium">BETA</span>
+);
+
+// Coming Soon label component
+const ComingSoonLabel = () => (
+  <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-500/10 text-blue-500 font-medium">Coming Soon</span>
 );
 
 export const TabManagement = () => {
@@ -217,6 +225,8 @@ export const TabManagement = () => {
                   <span className="px-1.5 py-0.25 text-xs rounded-full bg-purple-500/10 text-purple-500 font-medium mr-2">
                     Default
                   </span>
+                  {BETA_TABS.has(tab.id) && <BetaLabel />}
+                  {COMING_SOON_TABS.has(tab.id) && <ComingSoonLabel />}
                 </div>
 
                 <div className="flex items-start gap-4 p-4">
