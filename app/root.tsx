@@ -15,12 +15,24 @@ import globalStyles from './styles/index.scss?url';
 import xtermStyles from '@xterm/xterm/css/xterm.css?url';
 
 import 'virtual:uno.css';
+import { AuthProvider } from '~/lib/context/AuthContext';
+import { AuthModal } from '~/components/auth/AuthModal';
+import { TokenLimitModal } from '~/components/auth/TokenLimitModal';
+import { useAuthModals } from '~/lib/hooks/useAuthModals';
 
 export const links: LinksFunction = () => [
   {
     rel: 'icon',
     href: '/favicon.svg',
     type: 'image/svg+xml',
+  },
+  {
+    rel: 'apple-touch-icon',
+    href: '/apple-touch-icon.svg',
+  },
+  {
+    rel: 'apple-touch-icon-precomposed',
+    href: '/apple-touch-icon-precomposed.svg',
   },
   { rel: 'stylesheet', href: reactToastifyStyles },
   { rel: 'stylesheet', href: tailwindReset },
@@ -85,6 +97,15 @@ import { logStore } from './lib/stores/logs';
 
 export default function App() {
   const theme = useStore(themeStore);
+  const {
+    showAuthModal,
+    setShowAuthModal,
+    showTokenLimitModal,
+    setShowTokenLimitModal,
+    authMode,
+    setAuthMode,
+    handleSignUp,
+  } = useAuthModals();
 
   useEffect(() => {
     logStore.logSystem('Application initialized', {
@@ -96,8 +117,30 @@ export default function App() {
   }, []);
 
   return (
-    <Layout>
-      <Outlet />
-    </Layout>
+    <AuthProvider>
+      <html lang="en">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body>
+          <Outlet />
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            mode={authMode}
+            onModeChange={setAuthMode}
+          />
+          <TokenLimitModal
+            isOpen={showTokenLimitModal}
+            onClose={() => setShowTokenLimitModal(false)}
+            onSignUp={handleSignUp}
+            tokensUsed={0} // This will be updated when we integrate with the chat component
+          />
+        </body>
+      </html>
+    </AuthProvider>
   );
 }
