@@ -97,15 +97,6 @@ import { logStore } from './lib/stores/logs';
 
 export default function App() {
   const theme = useStore(themeStore);
-  const {
-    showAuthModal,
-    setShowAuthModal,
-    showTokenLimitModal,
-    setShowTokenLimitModal,
-    authMode,
-    setAuthMode,
-    handleSignUp,
-  } = useAuthModals();
 
   useEffect(() => {
     logStore.logSystem('Application initialized', {
@@ -118,29 +109,45 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <html lang="en">
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <Meta />
-          <Links />
-        </head>
-        <body>
-          <Outlet />
-          <AuthModal
-            isOpen={showAuthModal}
-            onClose={() => setShowAuthModal(false)}
-            mode={authMode}
-            onModeChange={setAuthMode}
-          />
-          <TokenLimitModal
-            isOpen={showTokenLimitModal}
-            onClose={() => setShowTokenLimitModal(false)}
-            onSignUp={handleSignUp}
-            tokensUsed={0} // This will be updated when we integrate with the chat component
-          />
-        </body>
-      </html>
+      <AppContent theme={theme} />
     </AuthProvider>
+  );
+}
+
+function AppContent({ theme }: { theme: string }) {
+  const {
+    showAuthModal,
+    setShowAuthModal,
+    showTokenLimitModal,
+    setShowTokenLimitModal,
+    authMode,
+    setAuthMode,
+    handleSignUp,
+  } = useAuthModals();
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <Outlet />
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          mode={authMode}
+          onModeChange={setAuthMode}
+        />
+        <TokenLimitModal
+          isOpen={showTokenLimitModal}
+          onClose={() => setShowTokenLimitModal(false)}
+          onSignUp={handleSignUp}
+          tokensUsed={0} // This will be updated when we integrate with the chat component
+        />
+      </body>
+    </html>
   );
 }
