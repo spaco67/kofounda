@@ -126,8 +126,29 @@ function AppContent({ theme }: { theme: string }) {
   } = useAuthModals();
 
   useEffect(() => {
-    console.log('Auth modal state:', { showAuthModal, authMode });
-  }, [showAuthModal, authMode]);
+    console.log('Root: Auth modal state:', { showAuthModal, authMode });
+
+    // Initialize event listener to handle modal triggers via custom events
+    const handleModalTrigger = (e: CustomEvent) => {
+      const { modalType, modalMode } = e.detail;
+      console.log('Custom event received:', e.detail);
+
+      if (modalType === 'auth') {
+        if (modalMode) {
+          setAuthMode(modalMode);
+        }
+        setShowAuthModal(true);
+      } else if (modalType === 'tokenLimit') {
+        setShowTokenLimitModal(true);
+      }
+    };
+
+    window.addEventListener('triggerModal' as any, handleModalTrigger as any);
+
+    return () => {
+      window.removeEventListener('triggerModal' as any, handleModalTrigger as any);
+    };
+  }, [showAuthModal, authMode, setAuthMode, setShowAuthModal, setShowTokenLimitModal]);
 
   return (
     <html lang="en">

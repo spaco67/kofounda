@@ -5,24 +5,32 @@ import { classNames } from '~/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { useAuth } from '~/lib/context/AuthContext';
-import { useAuthModals } from '~/lib/hooks/useAuthModals';
 import { Link } from '@remix-run/react';
 import { useCallback } from 'react';
 
 export const Header = () => {
   const chat = useStore(chatStore);
   const { user, logout } = useAuth();
-  const { setShowAuthModal, setAuthMode } = useAuthModals();
 
   const handleSignIn = useCallback(() => {
-    setAuthMode('signin');
-    setShowAuthModal(true);
-  }, [setAuthMode, setShowAuthModal]);
+    console.log('Sign In clicked, dispatching custom event');
+    // Use custom event to trigger modal
+    window.dispatchEvent(
+      new CustomEvent('triggerModal', {
+        detail: { modalType: 'auth', modalMode: 'signin' },
+      }),
+    );
+  }, []);
 
   const handleSignUp = useCallback(() => {
-    setAuthMode('signup');
-    setShowAuthModal(true);
-  }, [setAuthMode, setShowAuthModal]);
+    console.log('Sign Up clicked, dispatching custom event');
+    // Use custom event to trigger modal
+    window.dispatchEvent(
+      new CustomEvent('triggerModal', {
+        detail: { modalType: 'auth', modalMode: 'signup' },
+      }),
+    );
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-[#0A0A0A]/80">

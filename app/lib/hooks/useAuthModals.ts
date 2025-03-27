@@ -27,13 +27,13 @@ export const useAuthModals = () => {
     setShowTokenLimitModal(false);
     setAuthMode('signup');
     setShowAuthModal(true);
-  }, []);
+  }, [setShowTokenLimitModal, setAuthMode, setShowAuthModal]);
 
   const handleSignIn = useCallback(() => {
     setShowTokenLimitModal(false);
     setAuthMode('signin');
     setShowAuthModal(true);
-  }, []);
+  }, [setShowTokenLimitModal, setAuthMode, setShowAuthModal]);
 
   return {
     showAuthModal,

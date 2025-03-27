@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '~/lib/context/AuthContext';
 import { classNames } from '~/utils/classNames';
@@ -14,11 +14,23 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   const { signIn, signUp, error, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       console.log('Auth modal opened in mode:', mode);
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+
+      // Focus the modal when it opens
+      if (modalRef.current) {
+        modalRef.current.focus();
+      }
+    } else {
+      document.body.style.overflow = ''; // Re-enable scrolling when modal is closed
     }
+    return () => {
+      document.body.style.overflow = ''; // Cleanup
+    };
   }, [isOpen, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +42,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
     }
   };
 
+  // Use the Portal to ensure the modal is rendered at the root level
   return (
     <AnimatePresence>
       {isOpen && (
@@ -37,13 +50,17 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          style={{ backdropFilter: 'blur(8px)' }}
+          onClick={() => onClose()}
         >
           <motion.div
+            ref={modalRef}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-[#0A0A0A]"
+            className="w-full max-w-md rounded-2xl border-4 border-purple-500 bg-white p-6 shadow-2xl dark:bg-[#0A0A0A]"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
