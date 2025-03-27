@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '~/lib/context/AuthContext';
 import { classNames } from '~/utils/classNames';
@@ -14,6 +14,12 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   const { signIn, signUp, error, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      console.log('Auth modal opened in mode:', mode);
+    }
+  }, [isOpen, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

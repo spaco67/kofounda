@@ -6,7 +6,7 @@ import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { useAuth } from '~/lib/context/AuthContext';
 import { useAuthModals } from '~/lib/hooks/useAuthModals';
-import { Link } from 'react-router-dom';
+import { Link } from '@remix-run/react';
 
 export const Header = () => {
   const chat = useStore(chatStore);
@@ -14,11 +14,13 @@ export const Header = () => {
   const { setShowAuthModal, setAuthMode } = useAuthModals();
 
   const handleSignIn = () => {
+    console.log('Sign In clicked');
     setAuthMode('signin');
     setShowAuthModal(true);
   };
 
   const handleSignUp = () => {
+    console.log('Sign Up clicked');
     setAuthMode('signup');
     setShowAuthModal(true);
   };

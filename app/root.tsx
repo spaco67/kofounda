@@ -125,6 +125,19 @@ function AppContent({ theme }: { theme: string }) {
     handleSignUp,
   } = useAuthModals();
 
+  useEffect(() => {
+    console.log('Auth modal state:', { showAuthModal, authMode });
+  }, [showAuthModal, authMode]);
+
+  // Open auth modal by default for testing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('Setting showAuthModal to true for testing');
+      setShowAuthModal(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [setShowAuthModal]);
+
   return (
     <html lang="en">
       <head>
