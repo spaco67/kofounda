@@ -531,8 +531,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   >
                     <textarea
                       ref={textareaRef as any}
-                      className={clsx(
-                        'w-full resize-none rounded-lg border bg-background px-4 py-2 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                      className={classNames(
+                        'w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-3 pr-10 outline-none placeholder:text-kofounda-elements-textTertiary',
                         {
                           'placeholder-animate': enhancingPrompt,
                           'border-kofounda-elements-borderColor focus:border-kofounda-elements-borderColorActive': true,
