@@ -3,8 +3,230 @@ import { classNames } from '~/utils/classNames';
 import { toast } from 'react-toastify';
 import { useAuth } from '~/lib/context/AuthContext';
 import { useRBAC } from '~/lib/hooks/useRBAC';
-import type { User, UserRole } from '~/lib/types/auth';
+import type { User, UserRole, UserProfile, UserPermissions } from '~/lib/types/auth';
 import { withRoleProtection } from '~/lib/hooks/useRBAC';
+import { DEFAULT_PERMISSIONS } from '~/lib/types/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '~/lib/firebase/config';
+import { doc, setDoc } from 'firebase/firestore';
+
+interface CreateUserModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (user: User) => void;
+}
+
+// Create User Modal Component
+function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole>('user');
+  const [displayName, setDisplayName] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate input
+      if (!email || !password || password.length < 6) {
+        throw new Error('Please provide a valid email and a password with at least 6 characters');
+      }
+
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+
+      // Get permissions for selected role
+      const permissions = DEFAULT_PERMISSIONS[role];
+
+      // Create user document in Firestore
+      const newUser: User = {
+        uid: userId,
+        email: email,
+        role: role,
+        tokensUsed: 0,
+        isSubscribed: isSubscribed,
+        subscriptionTier: isSubscribed ? 'pro' : 'free',
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        profile: {
+          displayName: displayName || email.split('@')[0],
+          avatarUrl: undefined,
+        },
+        permissions: permissions,
+        verified: true,
+      };
+
+      await setDoc(doc(db, 'users', userId), newUser);
+
+      toast.success(`User ${email} created successfully`);
+      onSuccess(newUser);
+      onClose();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create user');
+      toast.error(error instanceof Error ? error.message : 'Failed to create user');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-md relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          <div className="i-ph:x-bold w-5 h-5" />
+        </button>
+
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Create New User</h2>
+
+        {error && (
+          <div className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 p-3 rounded-md mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={classNames(
+                'w-full px-3 py-2 rounded-md border',
+                'bg-white dark:bg-gray-800/80',
+                'border-gray-300 dark:border-gray-700',
+                'focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50',
+              )}
+              placeholder="user@example.com"
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={classNames(
+                'w-full px-3 py-2 rounded-md border',
+                'bg-white dark:bg-gray-800/80',
+                'border-gray-300 dark:border-gray-700',
+                'focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50',
+              )}
+              placeholder="••••••••"
+              minLength={6}
+              required
+              disabled={isLoading}
+            />
+            <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Name</label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className={classNames(
+                'w-full px-3 py-2 rounded-md border',
+                'bg-white dark:bg-gray-800/80',
+                'border-gray-300 dark:border-gray-700',
+                'focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50',
+              )}
+              placeholder="User's display name (optional)"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              className={classNames(
+                'w-full px-3 py-2 rounded-md border',
+                'bg-white dark:bg-gray-800/80',
+                'border-gray-300 dark:border-gray-700',
+                'focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50',
+              )}
+              disabled={isLoading}
+            >
+              <option value="user">User</option>
+              <option value="developer">Developer</option>
+              <option value="admin">Admin</option>
+              <option value="guest">Guest</option>
+            </select>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isSubscribed"
+              checked={isSubscribed}
+              onChange={(e) => setIsSubscribed(e.target.checked)}
+              className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+              disabled={isLoading}
+            />
+            <label htmlFor="isSubscribed" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Pro subscription
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className={classNames(
+                'px-4 py-2 rounded-md',
+                'text-gray-700 dark:text-gray-300',
+                'bg-gray-100 dark:bg-gray-800',
+                'hover:bg-gray-200 dark:hover:bg-gray-700',
+                'transition-colors duration-200',
+              )}
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={classNames(
+                'px-4 py-2 rounded-md',
+                'text-white font-medium',
+                'bg-purple-600 hover:bg-purple-700',
+                'transition-colors duration-200',
+                isLoading ? 'opacity-70 cursor-not-allowed' : '',
+              )}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center">
+                  <div className="i-ph:spinner-gap animate-spin mr-2 w-4 h-4" />
+                  Creating...
+                </span>
+              ) : (
+                'Create User'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 function AdminDashboardContent() {
   const { getUserList, updateUserRole, suspendUser, user } = useAuth();
@@ -13,6 +235,7 @@ function AdminDashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -43,7 +266,7 @@ function AdminDashboardContent() {
             profile: {
               displayName: 'Admin User',
               bio: 'Administrator account',
-              avatarUrl: null,
+              avatarUrl: undefined,
             },
             permissions: {
               canAccessAdmin: true,
@@ -66,7 +289,7 @@ function AdminDashboardContent() {
             profile: {
               displayName: 'Regular User',
               bio: 'Just a regular user',
-              avatarUrl: null,
+              avatarUrl: undefined,
             },
             permissions: {
               canAccessAdmin: false,
@@ -89,7 +312,7 @@ function AdminDashboardContent() {
             profile: {
               displayName: 'Developer User',
               bio: 'Developer with extended access',
-              avatarUrl: null,
+              avatarUrl: undefined,
             },
             permissions: {
               canAccessAdmin: true,
@@ -112,7 +335,7 @@ function AdminDashboardContent() {
             profile: {
               displayName: 'Suspended User',
               bio: 'This account has been suspended',
-              avatarUrl: null,
+              avatarUrl: undefined,
             },
             permissions: {
               canAccessAdmin: false,
@@ -124,7 +347,7 @@ function AdminDashboardContent() {
             suspended: true,
             verified: true,
           },
-        ];
+        ] as User[];
 
         toast.info('Using demo data while Firebase rules are being configured');
       }
@@ -136,6 +359,10 @@ function AdminDashboardContent() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleUserCreated = (newUser: User) => {
+    setUsers([...users, newUser]);
   };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
@@ -179,31 +406,55 @@ function AdminDashboardContent() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage users and monitor system activity</p>
         </div>
-        <button
-          onClick={loadUsers}
-          className={classNames(
-            'px-4 py-2 rounded-lg',
-            'bg-purple-600 hover:bg-purple-700',
-            'text-white font-medium',
-            'transition-colors duration-200',
-            'inline-flex items-center',
-            isLoading ? 'opacity-70 cursor-not-allowed' : '',
+        <div className="flex gap-2">
+          {canManageUsers && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className={classNames(
+                'px-4 py-2 rounded-lg',
+                'bg-emerald-600 hover:bg-emerald-700',
+                'text-white font-medium',
+                'transition-colors duration-200',
+                'inline-flex items-center',
+              )}
+            >
+              <div className="i-ph:user-plus mr-2 w-4 h-4" />
+              Create User
+            </button>
           )}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <div className="i-ph:spinner-gap animate-spin mr-2 w-4 h-4" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <div className="i-ph:arrows-clockwise mr-2 w-4 h-4" />
-              Refresh
-            </>
-          )}
-        </button>
+          <button
+            onClick={loadUsers}
+            className={classNames(
+              'px-4 py-2 rounded-lg',
+              'bg-purple-600 hover:bg-purple-700',
+              'text-white font-medium',
+              'transition-colors duration-200',
+              'inline-flex items-center',
+              isLoading ? 'opacity-70 cursor-not-allowed' : '',
+            )}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="i-ph:spinner-gap animate-spin mr-2 w-4 h-4" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <div className="i-ph:arrows-clockwise mr-2 w-4 h-4" />
+                Refresh
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Create User Modal */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleUserCreated}
+      />
 
       {/* Search and Filter Controls */}
       <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 mb-6 shadow-sm">
