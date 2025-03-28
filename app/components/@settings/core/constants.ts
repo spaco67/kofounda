@@ -16,7 +16,8 @@ export const TAB_ICONS: Record<TabType, string> = {
   'task-manager': 'i-ph:chart-line-fill',
   'tab-management': 'i-ph:squares-four-fill',
   'cloud-providers': 'i-ph:cloud-fill',
-  'local-providers': 'i-ph:desktop-tower-fill'
+  'local-providers': 'i-ph:desktop-tower-fill',
+  admin: 'i-ph:shield-fill',
 };
 
 export const TAB_LABELS: Record<TabType, string> = {
@@ -35,7 +36,8 @@ export const TAB_LABELS: Record<TabType, string> = {
   'task-manager': 'Task Manager',
   'tab-management': 'Tab Management',
   'cloud-providers': 'Cloud Providers',
-  'local-providers': 'Local Providers'
+  'local-providers': 'Local Providers',
+  admin: 'Admin Dashboard',
 };
 
 export const TAB_DESCRIPTIONS: Record<TabType, string> = {
@@ -54,7 +56,8 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   'task-manager': 'Monitor system resources and processes',
   'tab-management': 'Configure visible tabs and their order',
   'cloud-providers': 'Configure cloud AI providers and models',
-  'local-providers': 'Configure local AI providers and models'
+  'local-providers': 'Configure local AI providers and models',
+  admin: 'Manage users and system settings',
 };
 
 export const DEFAULT_TAB_CONFIG = [
@@ -76,6 +79,7 @@ export const DEFAULT_TAB_CONFIG = [
   // User Window Tabs (Hidden, controlled by TaskManagerTab)
   { id: 'debug', visible: false, window: 'user' as const, order: 11 },
   { id: 'update', visible: false, window: 'user' as const, order: 12 },
+  { id: 'admin', visible: false, window: 'user' as const, order: 13 },
 
   // Developer Window Tabs (All visible by default)
   { id: 'features', visible: true, window: 'developer' as const, order: 0 },
@@ -91,4 +95,5 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'service-status', visible: true, window: 'developer' as const, order: 10 },
   { id: 'debug', visible: true, window: 'developer' as const, order: 11 },
   { id: 'update', visible: true, window: 'developer' as const, order: 12 },
+  { id: 'admin', visible: true, window: 'developer' as const, order: 13 },
 ];

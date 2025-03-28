@@ -18,7 +18,8 @@ export type TabType =
   | 'task-manager'
   | 'tab-management'
   | 'cloud-providers'
-  | 'local-providers';
+  | 'local-providers'
+  | 'admin';
 
 export type WindowType = 'user' | 'developer';
 
@@ -85,6 +86,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   'tab-management': 'Tab Management',
   'cloud-providers': 'Cloud Providers',
   'local-providers': 'Local Providers',
+  admin: 'Admin',
 };
 
 export const categoryLabels: Record<SettingCategory, string> = {

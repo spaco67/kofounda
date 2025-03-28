@@ -38,6 +38,8 @@ import CloudProvidersTab from '~/components/@settings/tabs/providers/cloud/Cloud
 import ServiceStatusTab from '~/components/@settings/tabs/providers/status/ServiceStatusTab';
 import LocalProvidersTab from '~/components/@settings/tabs/providers/local/LocalProvidersTab';
 import TaskManagerTab from '~/components/@settings/tabs/task-manager/TaskManagerTab';
+import AdminDashboard from '~/components/@settings/tabs/admin/AdminDashboard';
+import { useRBAC } from '~/lib/hooks/useRBAC';
 
 interface ControlPanelProps {
   open: boolean;
@@ -173,6 +175,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
   const tabConfiguration = useStore(tabConfigurationStore);
   const developerMode = useStore(developerModeStore);
   const profile = useStore(profileStore) as Profile;
+  const { canAccessAdmin, isAdmin, isDeveloper } = useRBAC();
 
   // Status hooks
   const { hasUpdate, currentVersion, acknowledgeUpdate } = useUpdateCheck();
@@ -243,10 +246,15 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
           return false;
         }
 
+        // Hide admin tab for users without admin access
+        if (tab.id === 'admin' && !canAccessAdmin) {
+          return false;
+        }
+
         return tab.visible && tab.window === 'user';
       })
       .sort((a, b) => a.order - b.order);
-  }, [tabConfiguration, developerMode, profile?.preferences?.notifications, baseTabConfig]);
+  }, [tabConfiguration, developerMode, profile?.preferences?.notifications, baseTabConfig, canAccessAdmin]);
 
   // Optimize animation performance with layout animations
   const gridLayoutVariants = {
@@ -315,11 +323,9 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
   }, [developerMode]);
 
   const getTabComponent = (tabId: TabType | 'tab-management') => {
-    if (tabId === 'tab-management') {
-      return <TabManagement />;
-    }
-
     switch (tabId) {
+      case 'tab-management':
+        return <TabManagement />;
       case 'profile':
         return <ProfileTab />;
       case 'settings':
@@ -330,22 +336,24 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
         return <FeaturesTab />;
       case 'data':
         return <DataTab />;
-      case 'cloud-providers':
-        return <CloudProvidersTab />;
-      case 'local-providers':
-        return <LocalProvidersTab />;
-      case 'connection':
-        return <ConnectionsTab />;
       case 'debug':
         return <DebugTab />;
       case 'event-logs':
         return <EventLogsTab />;
       case 'update':
         return <UpdateTab />;
+      case 'connection':
+        return <ConnectionsTab />;
+      case 'cloud-providers':
+        return <CloudProvidersTab />;
+      case 'local-providers':
+        return <LocalProvidersTab />;
       case 'task-manager':
         return <TaskManagerTab />;
       case 'service-status':
         return <ServiceStatusTab />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return null;
     }

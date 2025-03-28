@@ -183,7 +183,7 @@ export const ChatImpl = memo(
 
         if (usage) {
           console.log('Token usage:', usage);
-
+          
           // Track token usage in Firebase
           trackTokenUsage(usage).then((canContinue) => {
             if (!canContinue) {
@@ -197,7 +197,7 @@ export const ChatImpl = memo(
               });
             }
           });
-
+          
           logStore.logProvider('Chat response completed', {
             component: 'Chat',
             action: 'response',
@@ -351,7 +351,7 @@ export const ChatImpl = memo(
       }
     };
 
-    return (
+  return (
       <BaseChat
         textareaRef={textareaRef}
         chatStarted={chatStarted}
