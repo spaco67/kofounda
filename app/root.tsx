@@ -108,9 +108,14 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <AppContent theme={theme} />
-    </AuthProvider>
+    <html lang="en" data-theme={theme}>
+      <Head />
+      <body>
+        <AuthProvider>
+          <AppContent theme={theme} />
+        </AuthProvider>
+      </body>
+    </html>
   );
 }
 
@@ -148,31 +153,27 @@ function AppContent({ theme }: { theme: string }) {
     return () => {
       window.removeEventListener('triggerModal' as any, handleModalTrigger as any);
     };
-  }, [showAuthModal, authMode, setAuthMode, setShowAuthModal, setShowTokenLimitModal]);
+  }, [showAuthModal, authMode, setShowAuthModal, setAuthMode, setShowTokenLimitModal]);
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <Outlet />
+    <div className="min-h-screen bg-background text-foreground">
+      <Outlet />
+      {showAuthModal && (
         <AuthModal
           isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
           mode={authMode}
+          onClose={() => setShowAuthModal(false)}
           onModeChange={setAuthMode}
         />
+      )}
+      {showTokenLimitModal && (
         <TokenLimitModal
           isOpen={showTokenLimitModal}
           onClose={() => setShowTokenLimitModal(false)}
           onSignUp={handleSignUp}
           tokensUsed={0}
         />
-      </body>
-    </html>
+      )}
+    </div>
   );
 }

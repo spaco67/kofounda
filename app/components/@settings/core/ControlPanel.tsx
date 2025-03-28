@@ -72,6 +72,8 @@ const TAB_DESCRIPTIONS: Record<TabType, string> = {
   notifications: 'View and manage your notifications',
   features: 'Explore new and upcoming features',
   data: 'Manage your data and storage',
+  'kofounda-academy': 'Access learning resources and tutorials',
+  referral: 'Invite friends and earn rewards',
   'cloud-providers': 'Configure cloud AI providers and models',
   'local-providers': 'Configure local AI providers and models',
   'service-status': 'Monitor cloud LLM service status',

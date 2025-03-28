@@ -35,34 +35,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   useEffect(() => {
+    console.log('Setting up auth state listener');
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.uid}` : 'No user');
+
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as User;
+            console.log('User document found:', userData);
+
+            // Update last login time
+            await updateDoc(doc(db, 'users', firebaseUser.uid), {
+              lastLoginAt: new Date(),
+            });
+
+            setState({
+              user: userData,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            console.log('Creating new user document');
+            // Create new user document if it doesn't exist
+            const newUser: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              role: 'user',
+              tokensUsed: 0,
+              isSubscribed: false,
+              createdAt: new Date(),
+              lastLoginAt: new Date(),
+            };
+            await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+            console.log('New user created:', newUser);
+            setState({
+              user: newUser,
+              isLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          console.error('Error handling auth state change:', error);
           setState({
-            user: userDoc.data() as User,
+            user: null,
             isLoading: false,
-            error: null,
-          });
-        } else {
-          // Create new user document if it doesn't exist
-          const newUser: User = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            role: 'user',
-            tokensUsed: 0,
-            isSubscribed: false,
-            createdAt: new Date(),
-            lastLoginAt: new Date(),
-          };
-          await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
-          setState({
-            user: newUser,
-            isLoading: false,
-            error: null,
+            error: 'Failed to load user data',
           });
         }
       } else {
+        console.log('User signed out or no user');
         setState({
           user: null,
           isLoading: false,
@@ -71,34 +94,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Sign in attempt with:', email);
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Sign in successful:', userCredential.user.uid);
+      // No need to update state here, as the onAuthStateChanged listener will handle it
     } catch (error) {
+      console.error('Sign in error:', error);
       setState((prev) => ({
         ...prev,
+        isLoading: false, // Make sure to set loading to false on error
         error: error instanceof Error ? error.message : 'An error occurred',
       }));
-    } finally {
-      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
+      console.log('Sign up attempt with:', email);
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Sign up successful:', userCredential.user.uid);
+      // No need to update state here, as the onAuthStateChanged listener will handle it
     } catch (error) {
+      console.error('Sign up error:', error);
       setState((prev) => ({
         ...prev,
+        isLoading: false, // Make sure to set loading to false on error
         error: error instanceof Error ? error.message : 'An error occurred',
       }));
-    } finally {
-      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 

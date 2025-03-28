@@ -11,14 +11,22 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProps) => {
-  const { signIn, signUp, error, isLoading } = useAuth();
+  const { signIn, signUp, error, isLoading, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Auto-close the modal when authentication is successful
+  useEffect(() => {
+    if (user && isOpen) {
+      console.log('User logged in, closing modal:', user);
+      onClose();
+    }
+  }, [user, isOpen, onClose]);
+
   useEffect(() => {
     if (isOpen) {
-      console.log('Auth modal opened in mode:', mode);
+      console.log('Auth modal opened in mode:', mode, 'Loading:', isLoading, 'User:', user);
       document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
 
       // Focus the modal when it opens
@@ -31,10 +39,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
     return () => {
       document.body.style.overflow = ''; // Cleanup
     };
-  }, [isOpen, mode]);
+  }, [isOpen, mode, isLoading, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(`Submitting ${mode} form with email:`, email);
     if (mode === 'signin') {
       await signIn(email, password);
     } else {
@@ -81,8 +90,12 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  className={classNames(
+                    'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                    { 'cursor-not-allowed': isLoading },
+                  )}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -95,8 +108,12 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  className={classNames(
+                    'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                    { 'cursor-not-allowed': isLoading },
+                  )}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -110,11 +127,20 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                 type="submit"
                 disabled={isLoading}
                 className={classNames(
-                  'w-full rounded-lg bg-purple-500 px-4 py-2 text-white shadow-sm hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50',
-                  isLoading && 'cursor-not-allowed',
+                  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  { 'cursor-not-allowed': isLoading },
                 )}
               >
-                {isLoading ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="i-svg-spinners:90-ring-with-bg w-5 h-5 mr-2"></div>
+                    Loading...
+                  </div>
+                ) : mode === 'signin' ? (
+                  'Sign In'
+                ) : (
+                  'Create Account'
+                )}
               </button>
             </form>
 
@@ -122,6 +148,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
               <button
                 onClick={() => onModeChange(mode === 'signin' ? 'signup' : 'signin')}
                 className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
+                disabled={isLoading}
               >
                 {mode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
               </button>

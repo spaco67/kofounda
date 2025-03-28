@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" fill="none">
+  <rect width="180" height="180" fill="#8A5FFF" />
+  
+  <!-- "K" Logo centered on the icon -->
+  <g transform="translate(40, 40) scale(1.2)">
+    <g filter="url(#a)">
+      <path fill="#FFFFFF" d="M66.657 0H28.343a7.948 7.948 0 0 0-6.887 3.979L2.288 37.235a7.948 7.948 0 0 0 0 7.938L21.456 78.43a7.948 7.948 0 0 0 6.887 3.979h38.314a7.948 7.948 0 0 0 6.886-3.98l19.17-33.256a7.948 7.948 0 0 0 0-7.938L73.542 3.98A7.948 7.948 0 0 0 66.657 0Z"/>
+    </g>
+    <path fill="#8A5FFF" fill-rule="evenodd" d="M30 20h7v17L56 20h9l-16 22 18 20h-9l-13-14v14h-7V20z" clip-rule="evenodd"/>
+  </g>
+  
+  <defs>
+    <filter id="a" width="92.549" height="82.409" x="1.226" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+      <feOffset/>
+      <feGaussianBlur stdDeviation="1.717"/>
+      <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/>
+      <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.65 0"/>
+      <feBlend in2="shape" result="effect1_innerShadow_615_13380"/>
+    </filter>
+  </defs>
+</svg> 

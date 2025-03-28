@@ -17,6 +17,8 @@ const TAB_ICONS: Record<TabType, string> = {
   notifications: 'i-ph:bell-fill',
   features: 'i-ph:star-fill',
   data: 'i-ph:database-fill',
+  'kofounda-academy': 'i-heroicons:academic-cap',
+  referral: 'i-heroicons:user-group',
   'cloud-providers': 'i-ph:cloud-fill',
   'local-providers': 'i-ph:desktop-fill',
   'service-status': 'i-ph:activity-fill',
