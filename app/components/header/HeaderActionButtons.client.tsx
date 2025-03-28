@@ -12,6 +12,8 @@ import type { ActionCallbackData } from '~/lib/runtime/message-parser';
 import { chatId } from '~/lib/persistence/useChatHistory'; // Add this import
 import { streamingState } from '~/lib/stores/streaming';
 import { NetlifyDeploymentLink } from '~/components/chat/NetlifyDeploymentLink.client';
+import { useAuth } from '~/lib/context/AuthContext';
+import { useRBAC } from '~/lib/hooks/useRBAC';
 
 interface HeaderActionButtonsProps {}
 
@@ -28,6 +30,8 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isStreaming = useStore(streamingState);
+  const { user } = useAuth();
+  const { isAdmin, isDeveloper, canAccessAdmin } = useRBAC();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -203,6 +207,23 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
     }
   };
 
+  const triggerAuthModal = (mode) => {
+    const event = new CustomEvent('triggerModal', {
+      detail: { modalType: 'auth', modalMode: mode },
+    });
+    window.dispatchEvent(event);
+    console.log(`${mode} clicked, dispatching custom event`);
+  };
+
+  const checkUserRole = () => {
+    if (user) {
+      console.log('Current user:', user);
+      toast.info(`Role: ${user.role}, Admin: ${isAdmin}, Developer: ${isDeveloper}, CanAccessAdmin: ${canAccessAdmin}`);
+    } else {
+      toast.warning('Not logged in');
+    }
+  };
+
   return (
     <div className="flex">
       <div className="relative" ref={dropdownRef}>
@@ -302,6 +323,66 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
           <div className="i-ph:code-bold" />
         </Button>
       </div>
+      {user ? (
+        <div className="flex gap-1">
+          <button
+            className={classNames(
+              'flex items-center justify-center bg-bolt-elements-background-depth-2 h-8 w-8 rounded-lg',
+              'transition-colors',
+              'hover:bg-bolt-elements-background-depth-3',
+              'active:bg-bolt-elements-background-depth-4',
+              'focus:outline-none',
+            )}
+            title="Check your role"
+            onClick={checkUserRole}
+          >
+            <div className="i-ph:user-circle text-bolt-elements-textSecondary text-lg" />
+          </button>
+          <button
+            className={classNames(
+              'flex items-center justify-center bg-bolt-elements-background-depth-2 h-8 w-8 rounded-lg',
+              'transition-colors',
+              'hover:bg-bolt-elements-background-depth-3',
+              'active:bg-bolt-elements-background-depth-4',
+              'focus:outline-none',
+            )}
+            title="Settings"
+            onClick={() => {
+              const event = new CustomEvent('openSettings');
+              window.dispatchEvent(event);
+            }}
+          >
+            <div className="i-ph:gear-six text-bolt-elements-textSecondary text-lg" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-1">
+          <button
+            className={classNames(
+              'flex items-center justify-center gap-2 bg-bolt-elements-background-depth-2 h-8 rounded-lg px-3',
+              'transition-colors',
+              'hover:bg-bolt-elements-background-depth-3',
+              'active:bg-bolt-elements-background-depth-4',
+              'focus:outline-none',
+            )}
+            onClick={() => triggerAuthModal('signin')}
+          >
+            <span className="text-sm text-bolt-elements-textSecondary">Sign In</span>
+          </button>
+          <button
+            className={classNames(
+              'flex items-center justify-center gap-2 bg-purple-600 h-8 rounded-lg px-3',
+              'transition-colors',
+              'hover:bg-purple-700',
+              'active:bg-purple-800',
+              'focus:outline-none',
+            )}
+            onClick={() => triggerAuthModal('signup')}
+          >
+            <span className="text-sm text-white">Sign Up</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

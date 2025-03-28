@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic user profile rules
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admins and developers can read all user data
+      allow read: if request.auth != null && 
+                  (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'developer');
+      
+      // Only admins can write to other users' data
+      allow write: if request.auth != null && 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Other collections can follow similar patterns
+    match /{document=**} {
+      // Default deny all
+      allow read, write: if false;
+    }
+  }
+} 
