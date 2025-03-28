@@ -200,42 +200,48 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
 
     const notificationsDisabled = profile?.preferences?.notifications === false;
 
-    // In developer mode, show ALL tabs without restrictions
-    if (developerMode) {
+    // For admin and developer users, show all tabs
+    if (isAdmin || isDeveloper) {
       const seenTabs = new Set<TabType>();
-      const devTabs: ExtendedTabConfig[] = [];
+      const allTabs: ExtendedTabConfig[] = [];
 
-      // Process tabs in order of priority: developer, user, default
+      // Process tabs in order of priority: user, default
       const processTab = (tab: BaseTabConfig) => {
         if (!seenTabs.has(tab.id)) {
           seenTabs.add(tab.id);
-          devTabs.push({
+          allTabs.push({
             id: tab.id,
             visible: true,
-            window: 'developer',
-            order: tab.order || devTabs.length,
+            window: 'user',
+            order: tab.order || allTabs.length,
           });
         }
       };
 
       // Process tabs in priority order
-      tabConfiguration.developerTabs?.forEach((tab) => processTab(tab as BaseTabConfig));
       tabConfiguration.userTabs.forEach((tab) => processTab(tab as BaseTabConfig));
       DEFAULT_TAB_CONFIG.forEach((tab) => processTab(tab as BaseTabConfig));
 
       // Add Tab Management tile
-      devTabs.push({
+      allTabs.push({
         id: 'tab-management' as TabType,
         visible: true,
-        window: 'developer',
-        order: devTabs.length,
+        window: 'user',
+        order: allTabs.length,
         isExtraDevTab: true,
       });
 
-      return devTabs.sort((a, b) => a.order - b.order);
+      return allTabs.sort((a, b) => a.order - b.order);
     }
 
-    // Optimize user mode tab filtering
+    // For guest users, only show Settings tab
+    if (!profile || profile.role === 'guest') {
+      return tabConfiguration.userTabs.filter((tab) => tab.id === 'settings').map((tab) => ({ ...tab, visible: true }));
+    }
+
+    // For normal users, show only specific tabs
+    const allowedTabs = ['connection', 'data', 'profile', 'kofounda-academy', 'referral'];
+
     return tabConfiguration.userTabs
       .filter((tab) => {
         if (!tab?.id) {
@@ -246,15 +252,12 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
           return false;
         }
 
-        // Hide admin tab for users without admin access
-        if (tab.id === 'admin' && !canAccessAdmin) {
-          return false;
-        }
-
-        return tab.visible && tab.window === 'user';
+        // Only show allowed tabs for normal users
+        return allowedTabs.includes(tab.id);
       })
+      .map((tab) => ({ ...tab, visible: true }))
       .sort((a, b) => a.order - b.order);
-  }, [tabConfiguration, developerMode, profile?.preferences?.notifications, baseTabConfig, canAccessAdmin]);
+  }, [tabConfiguration, profile?.preferences?.notifications, isAdmin, isDeveloper, profile, baseTabConfig]);
 
   // Optimize animation performance with layout animations
   const gridLayoutVariants = {
@@ -311,16 +314,6 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
       setActiveTab(null);
     }
   };
-
-  const handleDeveloperModeChange = (checked: boolean) => {
-    console.log('Developer mode changed:', checked);
-    setDeveloperMode(checked);
-  };
-
-  // Add effect to log developer mode changes
-  useEffect(() => {
-    console.log('Current developer mode:', developerMode);
-  }, [developerMode]);
 
   const getTabComponent = (tabId: TabType | 'tab-management') => {
     switch (tabId) {
@@ -484,18 +477,8 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                   </div>
 
                   <div className="flex items-center gap-6">
-                    {/* Mode Toggle */}
-                    <div className="flex items-center gap-2 min-w-[140px] border-r border-gray-200 dark:border-gray-800 pr-6">
-                      <AnimatedSwitch
-                        id="developer-mode"
-                        checked={developerMode}
-                        onCheckedChange={handleDeveloperModeChange}
-                        label={developerMode ? 'Developer Mode' : 'User Mode'}
-                      />
-                    </div>
-
                     {/* Avatar and Dropdown */}
-                    <div className="border-l border-gray-200 dark:border-gray-800 pl-6">
+                    <div>
                       <AvatarDropdown onSelectTab={handleTabClick} />
                     </div>
 
